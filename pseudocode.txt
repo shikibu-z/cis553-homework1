@@ -1,0 +1,166 @@
+// Name: Junyong Zhao
+// PennKey: junyong
+
+/* ports to broadcast */
+struct mcast_ports
+{
+    1 : [ 2, 3 ];
+    2 : [ 1, 3 ];
+    3 : [ 1, 2 ];
+};
+
+void aiMulticast(int ingress)
+{
+    aiForward(mcast_ports[ingress][0]);
+    aiForward(mcast_ports[ingress][1]);
+}
+
+/* switch 1 */
+void apply_tiLearnMAC()
+{
+    switch (hdr.ethernet.srcAddr)
+    {
+    case 0x000000000101: // we have seen this
+        NoAction();      // just do nothing
+        break;
+
+    default:
+        aiSendDigest(hdr.ethernet.srcAddr, standard_metadata.ingress_port); // send to learn
+        break;
+    }
+}
+
+void apply_tiForward()
+{
+    switch (hdr.ethernet.dstAddr)
+    {
+    case 0x000000000101: // forward if we have seen someone from this packet
+        aiForward(3);    // for s1, send to 3
+        break;
+
+    default:
+        aiMulticast(standard_metadata.ingress_port); // boardcast if haven't seen any before
+        break;
+    }
+}
+
+void apply_tiFilter()
+{
+    switch (hdr.ethernet.dstAdd)
+    {
+    case 0x000000000101:
+        switch (standard_metadata.ingress_port)
+        {
+        case 3:
+            mark_to_drop(standard_metadata); // drop if ping itself (dst same and ingress same)
+        default:
+            NoAction();
+            break;
+        }
+        break;
+
+    default:
+        NoAction();
+        break;
+    }
+}
+
+/* switch 2 */
+void apply_tiLearnMAC()
+{
+    switch (hdr.ethernet.srcAddr)
+    {
+    case 0x000000000101: // we have seen this
+        NoAction();      // just do nothing
+        break;
+
+    default:
+        aiSendDigest(hdr.ethernet.srcAddr, standard_metadata.ingress_port); // send to learn
+        break;
+    }
+}
+
+void apply_tiForward()
+{
+    switch (hdr.ethernet.dstAddr)
+    {
+    case 0x000000000101: // forward if we have seen someone from this packet
+        aiForward(2);    // for s2, send to 2
+        break;
+
+    default:
+        aiMulticast(standard_metadata.ingress_port); // boardcast if haven't seen any before
+        break;
+    }
+}
+
+void apply_tiFilter()
+{
+    switch (hdr.ethernet.dstAddr)
+    {
+    case 0x000000000101:
+        switch (standard_metadata.ingress_port)
+        {
+        case 2:
+            mark_to_drop(standard_metadata); // drop if ping itself
+        default:
+            NoAction();
+            break;
+        }
+        break;
+
+    default:
+        NoAction();
+        break;
+    }
+}
+
+/* switch 3 */
+void apply_tiLearnMAC()
+{
+    switch (hdr.ethernet.srcAddr)
+    {
+    case 0x000000000101: // we have seen this
+        NoAction();      // just do nothing
+        break;
+
+    default:
+        aiSendDigest(hdr.ethernet.srcAddr, standard_metadata.ingress_port); // send to learn
+        break;
+    }
+}
+
+void apply_tiForward()
+{
+    switch (hdr.ethernet.dstAddr)
+    {
+    case 0x000000000101: // forward if we have seen someone from this packet
+        aiForward(1);    // for s3, send to 1
+        break;
+
+    default:
+        aiMulticast(standard_metadata.ingress_port); // boardcast if haven't seen any before
+        break;
+    }
+}
+
+void apply_tiFilter()
+{
+    switch (hdr.ethernet.dstAddr)
+    {
+    case 0x000000000101:
+        switch (standard_metadata.ingress_port)
+        {
+        case 1:
+            mark_to_drop(standard_metadata); // drop if ping itself
+        default:
+            NoAction();
+            break;
+        }
+        break;
+
+    default:
+        NoAction();
+        break;
+    }
+}
